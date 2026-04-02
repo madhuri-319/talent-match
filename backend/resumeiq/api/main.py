@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from resumeiq.config.settings import settings
 from resumeiq.api.routes import router
 from resumeiq.observability.logger import setup_logger
+from resumeiq.db.postgres import init_db, create_database_if_not_exists
 
 logger = setup_logger(__name__)
 
@@ -35,6 +36,9 @@ app.include_router(router)
 async def startup_event():
     """Initialize app on startup."""
     logger.info("ResumeIQ API starting up...")
+    create_database_if_not_exists()
+    init_db()
+    logger.info("Database initialized successfully.")
 
 
 @app.on_event("shutdown")
