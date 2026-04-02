@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     debug: bool = os.getenv("DEBUG", "False").lower() == "true"
 
     # LLM Settings
+    google_api_key: str = os.getenv("GOOGLE_API_KEY", "")
     llm_api_key: str = os.getenv("LLM_API_KEY", "")
     llm_model: str = os.getenv("LLM_MODEL", "gpt-4")
     llm_temperature: float = 0.7
