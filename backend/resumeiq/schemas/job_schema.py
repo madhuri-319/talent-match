@@ -1,41 +1,41 @@
-"""
-Job Schema - Pydantic models for job posting data structure.
-"""
-
+from pydantic import BaseModel, Field, AliasChoices, field_validator
 from typing import List, Optional
-from pydantic import BaseModel
 
+class JobPostingSchema(BaseModel):
+    # AliasChoices looks for the snake_case version first, then the camelCase
+    jobTitle: str = Field(
+        validation_alias=AliasChoices("job_title", "jobTitle"),
+        description="The official title of the position"
+    )
+    department: Optional[str] = Field(
+        validation_alias=AliasChoices("department", "dept"),
+        description="The department or team name"
+    )
+    location: str = Field(
+        description="City, State or Remote/Hybrid status"
+    )
+    jobType: Optional[str] = Field(
+        validation_alias=AliasChoices("job_type", "jobType"),
+        description="Full-time, Part-time, or Contract"
+    )
+    experienceRequired: str = Field(
+        validation_alias=AliasChoices("experience_required", "experienceRequired"),
+        description="Years or level of experience needed"
+    )
+    technicalSkills: List[str] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("technical_skills", "technicalSkills"),
+        description="List of required technical competencies"
+    )
 
-class SalaryRange(BaseModel):
-    """Salary range schema."""
-
-    min_salary: float
-    max_salary: float
-    currency: str = "USD"
-
-
-class JobRequirement(BaseModel):
-    """Job requirement schema."""
-
-    skill: str
-    proficiency_level: Optional[str] = None
-    years_required: Optional[int] = None
-    is_required: bool = True
-
-
-class JobPosting(BaseModel):
-    """Job posting schema."""
-
-    title: str
-    company: str
-    description: str
-    location: str
-    job_type: str  # Full-time, Part-time, Contract, etc.
-    salary: Optional[SalaryRange] = None
-    requirements: List[JobRequirement]
-    nice_to_have: Optional[List[JobRequirement]] = None
-    department: Optional[str] = None
-    level: Optional[str] = None  # Junior, Mid, Senior, Executive
-    posted_date: str
-    deadline: Optional[str] = None
-    remote_eligible: bool = False
+    @field_validator("technicalSkills", mode="before")
+    @classmethod
+    def ensure_list(cls, v):
+        """
+        Catches strings like 'Java, Selenium' and converts them to ['Java', 'Selenium']
+        before Pydantic throws a validation error.
+        """
+        if isinstance(v, str):
+            # Split by comma and remove extra whitespace
+            return [skill.strip() for skill in v.split(",") if skill.strip()]
+        return v

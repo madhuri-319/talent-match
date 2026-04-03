@@ -1,44 +1,16 @@
-"""
-HR Flow - Workflow for HR requisitions and hiring pipeline.
-Defines the pipeline: Create Requisition -> Review Candidates -> Schedule Interviews -> Make Offer
-"""
+from agents.hr_agents.requisition.agent import RequisitionAgent
+from tools.db_tool import save_job_to_mongo # Assuming this is in your db_tool
 
-import logging
-from typing import Any, Dict
-
-logger = logging.getLogger(__name__)
-
-
-class HRFlow:
-    """Workflow for HR hiring pipeline."""
-
-    def __init__(self):
-        """Initialize HR flow."""
-        logger.info("Initialized HRFlow")
-
-    def execute(self, requisition_input: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute HR hiring flow.
-
-        Args:
-            requisition_input: Input requisition data
-
-        Returns:
-            Hiring flow results
-        """
-        logger.info("Executing HR flow")
-        # Flow execution logic will be implemented
-        pass
-
-    def handle_state(self, state: str, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Handle specific state in the flow.
-
-        Args:
-            state: Current state
-            data: State data
-
-        Returns:
-            Next state data
-        """
-        pass
+def run_hr_requisition_flow(hr_input: str):
+    agent = RequisitionAgent()
+    
+    # 1. Extract contextually
+    job_data = agent.extract_job_details(hr_input)
+    
+    # 2. Convert Pydantic to Dict/JSON
+    job_json = job_data.model_dump()
+    
+    # 3. Optional: Save to DB
+    # save_job_to_mongo(job_json)
+    
+    return job_json

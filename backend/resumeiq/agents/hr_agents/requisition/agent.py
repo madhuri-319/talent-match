@@ -1,55 +1,106 @@
-"""
-Requisition Agent - Handles HR job requisition management.
-"""
-
-import logging
-from typing import Any, Dict, List
-
-logger = logging.getLogger(__name__)
-
+import json
+from resumeiq.schemas.job_schema import JobPostingSchema
 
 class RequisitionAgent:
-    """Agent for managing job requisitions."""
+    def __init__(self, api_key: str):
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
 
-    def __init__(self):
-        """Initialize the requisition agent."""
-        logger.info("Initializing RequisitionAgent")
+        self.model = genai.GenerativeModel(
+            model_name="gemini-2.5-flash",
+            system_instruction=(
+                "You are an HR assistant. Extract or update job descriptions into JSON using EXACT keys: "
+                "job_title, department, location, job_type, experience_required, technical_skills. "
+                "Return ONLY JSON."
+            )
+        )
 
-    def create_requisition(self, requisition_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Create a new job requisition.
+        # 🧠 state (POC)
+        self.pending_job = None
+        self.awaiting_confirmation = False
 
-        Args:
-            requisition_data: Job requisition details
+    # -----------------------------
+    # STEP 1: Initial generation
+    # -----------------------------
+    def generate(self, raw_prompt: str):
+        response = self.model.generate_content(
+            raw_prompt,
+            generation_config={"response_mime_type": "application/json"}
+        )
 
-        Returns:
-            Created requisition with ID
-        """
-        logger.info("Creating new job requisition")
-        # Creation logic will be implemented
-        pass
+        job = JobPostingSchema.model_validate_json(response.text)
 
-    def review_candidates(self, requisition_id: str) -> List[str]:
-        """
-        Review candidates for a requisition.
+        self.pending_job = job
+        self.awaiting_confirmation = True
 
-        Args:
-            requisition_id: ID of the requisition
+        return {
+            "message": "Here is the generated job description. You can suggest changes or type 'yes' to approve.",
+            "data": job.model_dump()
+        }
 
-        Returns:
-            List of candidate IDs
-        """
-        pass
+    # -----------------------------
+    # STEP 2: Refinement loop
+    # -----------------------------
+    def refine_or_confirm(self, user_input: str):
 
-    def schedule_interview(self, candidate_id: str, requisition_id: str) -> Dict[str, Any]:
-        """
-        Schedule interview for candidate.
+        if not self.awaiting_confirmation:
+            return {"message": "No active job to refine."}
 
-        Args:
-            candidate_id: ID of the candidate
-            requisition_id: ID of the requisition
+        # ✅ FINAL APPROVAL
+        if user_input.lower() in ["yes", "approve", "ok"]:
+            self.save_to_db(self.pending_job.model_dump())
 
-        Returns:
-            Interview scheduling result
-        """
-        pass
+            self.pending_job = None
+            self.awaiting_confirmation = False
+
+            return {"message": "✅ Job successfully saved to DB"}
+
+        # 🔁 REFINEMENT
+        else:
+            refinement_prompt = f"""
+            Existing Job JSON:
+            {self.pending_job.model_dump_json()}
+
+            User wants following changes:
+            {user_input}
+
+            Update the JSON accordingly.
+            Return ONLY JSON.
+            """
+
+            response = self.model.generate_content(
+                refinement_prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+
+            updated_job = JobPostingSchema.model_validate_json(response.text)
+
+            self.pending_job = updated_job
+
+            return {
+                "message": "Here is the updated job description. More changes or type 'yes' to approve.",
+                "data": updated_job.model_dump()
+            }
+
+    # -----------------------------
+    # DB SAVE
+    # -----------------------------
+    def save_to_db(self, job_data: dict):
+        print("💾 Saving to DB:", job_data)
+
+
+if __name__ == "__main__":
+    agent = RequisitionAgent(api_key="api_key")
+
+    while True:
+        user_input = input("\nHR: ")
+
+        if agent.awaiting_confirmation:
+            response = agent.refine_or_confirm(user_input)
+        else:
+            response = agent.generate(user_input)
+
+        print("\nAI:", response["message"])
+
+        if "data" in response:
+            print(json.dumps(response["data"], indent=4))
