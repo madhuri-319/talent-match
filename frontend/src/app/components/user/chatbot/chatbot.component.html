@@ -1,0 +1,38 @@
+<div class="chatbot-container">
+
+  <div class="chat-header">
+    🤖 Job Assistant
+  </div>
+
+  <div class="chat-body">
+
+    <div class="messages" #scrollContainer>
+      @for (msg of messages; track $index) {
+        <div class="message" [class.user]="msg.sender === 'user'">
+          {{ msg.text }}
+        </div>
+      }
+    </div>
+
+   @if (step === 'WAITING_FOR_RESUME') {
+  <div class="file-upload">
+    <input 
+      type="file" 
+      (change)="onFileSelected($event)" 
+      class="file-input"
+    />
+  </div>
+}
+
+    <div class="input-box">
+      <input [(ngModel)]="userInput" 
+       [placeholder]="getPlaceholder()"
+  (keydown)="handleKeyDown($event)"
+  
+  />
+  <button (click)="sendMessage()">Send</button>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,35 @@
+.dashboard-container {
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+.main-section {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  gap: 20px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat-section {
+  height: 100%;
+}
+
+.right-section {
+  display: grid;
+  grid-template-rows: 2fr 1fr;
+  gap: 20px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.jobs-section,
+.applications-section {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  overflow-y: auto;
+}
