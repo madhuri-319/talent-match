@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 DB_CONFIG = {
     "host": os.environ.get("POSTGRES_HOST", "localhost"),
     "port": os.environ.get("POSTGRES_PORT", "5432"),
-    "dbname": os.environ.get("POSTGRES_DB", "resume_ranker"),
+    "dbname": os.environ.get("POSTGRES_DB", "talent-match"),
     "user": os.environ.get("POSTGRES_USER", "${username}"),
     "password": os.environ.get("POSTGRES_PASSWORD", "${password}"),
 }
