@@ -90,7 +90,7 @@ class RequisitionAgent:
 
 
 if __name__ == "__main__":
-    agent = RequisitionAgent(api_key="AIzaSyDrviQrzNmW2BkXthkjsY6_8WamvrrxyBI")
+    agent = RequisitionAgent(api_key="api_key")
 
     while True:
         user_input = input("\nHR: ")
