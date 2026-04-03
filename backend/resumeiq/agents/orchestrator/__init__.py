@@ -1,5 +1,5 @@
 """Orchestrator agent module."""
 
-from .agent import OrchestratorAgent
+from .agent import root_agent
 
-__all__ = ["OrchestratorAgent"]
+__all__ = ["root_agent"]
